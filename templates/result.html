@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Result</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/Resultstyle.css') }}">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+
+<body>
+  <div id="contact">
+    <h1>Sentiment Analysis Result : </h1>
+  </div>
+  <!-- Inside your result.html template -->
+<table class="table table-bordered">
+  {% if result %}
+  <tr>
+    <th>Title</th>
+    <th>See More</th> <!-- Add this column for the "See More" link -->
+    <th>Date</th>
+    <th>Source Name</th>
+    <th>Sentiment</th>
+   
+  </tr>
+  {% for value in result %}
+  <tr>
+    <td>{{ value["text"] }}</td>
+    <td><a href="{{ value["link"] }}" target="_blank">See More</a></td> <!-- Add the See More link -->
+    <td>{{ value["date"] }}</td>
+    <td>{{ value["source_name"] }}</td>
+    <td>{{ value["sentiment"] }}</td>
+   
+  </tr>
+  {% endfor %}
+  {% else %}
+  <tr>
+    <td colspan="5">{{ message }}</td>
+  </tr>
+  {% endif %}
+</table>
+
+
+  <div class="p-box" style="width:100%;">
+    <canvas id="myPieChart"></canvas>
+  </div>
+
+
+
+
+  
+</body>
+
+<!-- ... (script section remains the same) ... -->
+
+
+<script>
+  // JavaScript code to generate the pie chart
+  document.addEventListener('DOMContentLoaded', function () {
+    let totalTweets = parseInt("{{negative_count}}") + parseInt("{{positive_count}}") + parseInt("{{neutral_count}}");
+  
+    if (totalTweets > 0) {
+      var ctx = document.getElementById('myPieChart').getContext('2d');
+      var myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ["Negative", "Positive", "Neutral"],
+          datasets: [{
+            data: [{{negative_count}}, {{positive_count}}, {{neutral_count}}],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+          }]
+        },
+        options: {
+          tooltips: {
+            callbacks: {
+              label: function (tooltipItem, data) {
+                var dataset = data.datasets[tooltipItem.datasetIndex];
+                var total = dataset.data.reduce((acc, val) => acc + val, 0);
+                var currentValue = dataset.data[tooltipItem.index];
+                var percentage = ((currentValue / total) * 100).toFixed(2);
+                return percentage + "%";
+              }
+            },
+            bodyFontColor: '#333'
+          },
+          legend: {
+            labels: {
+              generateLabels: function(chart) {
+                var data = chart.data;
+                if (data.labels.length && data.datasets.length) {
+                  return data.labels.map(function(label, i) {
+                    var dataset = data.datasets[0];
+                    var percent = ((dataset.data[i] / totalTweets) * 100).toFixed(2);
+                    return {
+                      text: label + ' (' + percent + '%)',
+                      fillStyle: dataset.backgroundColor[i],
+                      hidden: isNaN(dataset.data[i]) || dataset.data[i] === 0
+                    };
+                  });
+                }
+                return [];
+              }
+            },
+            onClick: function(e, legendItem) {
+              // Handle legend item click if needed
+            }
+          }
+        }
+      });
+    } else {
+      console.log("No tweets available for sentiment analysis");
+    }
+  });
+  
+  
+  
+  
+  
+</script>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
